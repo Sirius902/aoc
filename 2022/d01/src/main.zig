@@ -30,6 +30,10 @@ pub fn maxCalories(reader: anytype, tops: []usize) ![]usize {
         if (line.len == 0) {
             for (0..tops_len) |i| {
                 if (current_total > tops[i]) {
+                    if (tops_len < tops.len) {
+                        tops_len += 1;
+                    }
+
                     std.mem.copyBackwards(
                         usize,
                         tops[i + 1 .. tops_len],
@@ -75,6 +79,8 @@ test "provided test" {
         \\9000
         \\
         \\10000
+        \\
+        \\
     ;
 
     var tops_buf: [3]usize = undefined;
