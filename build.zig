@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
         []const u8,
         "day",
         "Day of puzzle to build",
-    ) orelse std.debug.panic("Puzzle day must be specified", .{});
+    ) orelse @panic("Puzzle day must be specified");
 
     const root_source_file = std.build.FileSource{
         .path = b.fmt("{s}/d{s}/src/main.zig", .{ year, day }),
@@ -27,6 +27,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
+    const lf_mod = b.createModule(.{ .source_file = .{ .path = "src/lf.zig" } });
+    exe.addModule("lf", lf_mod);
 
     b.installArtifact(exe);
 

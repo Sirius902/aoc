@@ -1,7 +1,7 @@
 const std = @import("std");
 const io = std.io;
 const math = std.math;
-const lfStream = @import("lf.zig").lfStream;
+const lfStream = @import("lf").lfStream;
 
 pub fn main() !void {
     var stdin = io.getStdIn().reader();
