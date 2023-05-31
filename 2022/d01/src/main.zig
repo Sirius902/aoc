@@ -26,8 +26,24 @@ pub fn maxCalories(reader: anytype, tops: []usize) ![]usize {
     var tops_len: usize = 0;
     var current_total: usize = 0;
 
-    while (try lf_reader.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-        if (line.len == 0) {
+    while (true) {
+        const line_opt = try lf_reader.readUntilDelimiterOrEof(&buf, '\n');
+        var update_total = false;
+        var is_eof = false;
+
+        if (line_opt) |line| {
+            if (line.len != 0) {
+                const calories = try std.fmt.parseUnsigned(usize, line, 10);
+                current_total += calories;
+            } else {
+                update_total = true;
+            }
+        } else {
+            update_total = true;
+            is_eof = true;
+        }
+
+        if (update_total) {
             for (0..tops_len) |i| {
                 if (current_total > tops[i]) {
                     if (tops_len < tops.len) {
@@ -48,10 +64,9 @@ pub fn maxCalories(reader: anytype, tops: []usize) ![]usize {
             }
 
             current_total = 0;
-        } else {
-            const calories = try std.fmt.parseInt(usize, line, 10);
-            current_total += calories;
         }
+
+        if (is_eof) break;
     }
 
     return tops[0..tops_len];
@@ -79,7 +94,6 @@ test "provided test" {
         \\9000
         \\
         \\10000
-        \\
         \\
     ;
 
