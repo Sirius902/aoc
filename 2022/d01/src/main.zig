@@ -94,7 +94,6 @@ test "provided test" {
         \\9000
         \\
         \\10000
-        \\
     ;
 
     var tops_buf: [3]usize = undefined;
