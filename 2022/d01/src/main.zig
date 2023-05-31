@@ -1,7 +1,7 @@
 const std = @import("std");
 const io = std.io;
 const math = std.math;
-const normalizedLfStream = @import("lf.zig").normalizedLfStream;
+const lfStream = @import("lf.zig").lfStream;
 
 pub fn main() !void {
     var stdin = io.getStdIn().reader();
@@ -19,7 +19,7 @@ pub fn main() !void {
 }
 
 pub fn maxCalories(reader: anytype, tops: []usize) ![]usize {
-    var stream = normalizedLfStream(reader);
+    var stream = lfStream(reader);
     var lf_reader = stream.reader();
     var buf: [maxDigits(usize) + 1]u8 = undefined;
 
