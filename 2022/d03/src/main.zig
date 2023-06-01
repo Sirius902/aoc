@@ -10,7 +10,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     const stdin = io.getStdIn().reader();
-    std.log.info("{}", .{try sumOfPriorities(allocator, stdin)});
+    std.log.info("{any}", .{try sumOfPriorities(allocator, stdin)});
 }
 
 fn priority(c: u8) !usize {
@@ -21,7 +21,7 @@ fn priority(c: u8) !usize {
     };
 }
 
-fn sumOfPriorities(allocator: mem.Allocator, reader: anytype) !usize {
+fn sumOfPriorities(allocator: mem.Allocator, reader: anytype) ![2]usize {
     var stream = lfStream(reader);
     const lf_reader = stream.reader();
 
@@ -29,27 +29,47 @@ fn sumOfPriorities(allocator: mem.Allocator, reader: anytype) !usize {
     defer seen.deinit();
 
     var sum: usize = 0;
+    var badge_sum: usize = 0;
 
-    while (try lf_reader.readUntilDelimiterOrEofAlloc(
-        allocator,
-        '\n',
-        std.math.maxInt(usize),
-    )) |line| {
-        defer allocator.free(line);
-        seen.clearRetainingCapacity();
+    var lines: [3][]const u8 = undefined;
+    loop: while (true) {
+        for (&lines) |*line| {
+            line.* = try lf_reader.readUntilDelimiterOrEofAlloc(
+                allocator,
+                '\n',
+                std.math.maxInt(usize),
+            ) orelse break :loop;
+        }
 
-        const first = line[0 .. line.len / 2];
-        const second = line[line.len / 2 ..];
+        defer {
+            for (&lines) |line| {
+                allocator.free(line);
+            }
+        }
 
-        for (first) |c| {
-            if (!seen.contains(c) and std.mem.indexOfScalar(u8, second, c) != null) {
-                try seen.put(c, {});
-                sum += try priority(c);
+        for (&lines) |line| {
+            seen.clearRetainingCapacity();
+
+            const first = line[0 .. line.len / 2];
+            const second = line[line.len / 2 ..];
+
+            for (first) |c| {
+                if (!seen.contains(c) and mem.indexOfScalar(u8, second, c) != null) {
+                    try seen.put(c, {});
+                    sum += try priority(c);
+                }
+            }
+        }
+
+        for (lines[0]) |c| {
+            if (mem.indexOfScalar(u8, lines[1], c) != null and mem.indexOfScalar(u8, lines[2], c) != null) {
+                badge_sum += try priority(c);
+                break;
             }
         }
     }
 
-    return sum;
+    return [2]usize{ sum, badge_sum };
 }
 
 test "provided test" {
@@ -64,8 +84,8 @@ test "provided test" {
     ;
 
     var stream = io.fixedBufferStream(input);
-    try testing.expectEqual(
-        @as(usize, 157),
-        try sumOfPriorities(testing.allocator, stream.reader()),
-    );
+    const sums = try sumOfPriorities(testing.allocator, stream.reader());
+
+    try testing.expectEqual(@as(usize, 157), sums[0]);
+    try testing.expectEqual(@as(usize, 70), sums[1]);
 }
