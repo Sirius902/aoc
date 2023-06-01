@@ -36,6 +36,7 @@ fn sumOfPriorities(allocator: mem.Allocator, reader: anytype) !usize {
         std.math.maxInt(usize),
     )) |line| {
         defer allocator.free(line);
+        seen.clearRetainingCapacity();
 
         const first = line[0 .. line.len / 2];
         const second = line[line.len / 2 ..];
